@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  flux-limiter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flux-limiter
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - TARGET_URL=http://mock-upstream:5678
+      - LIMITER_TYPE=redis
+      - RATE_LIMIT=50
+      - BURST_LIMIT=50
+      - WINDOW_DURATION=1s
+      - REDIS_ADDR=redis:6379
+      - REDIS_ALGORITHM=fixed_window
+    depends_on:
+      redis:
+        condition: service_healthy
+      mock-upstream:
+        condition: service_started
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: flux-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "no", "--save", ""]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 2s
+      retries: 5
+    restart: unless-stopped
+
+  mock-upstream:
+    image: hashicorp/http-echo:latest
+    container_name: flux-mock-upstream
+    command: ["-text=Hello from upstream backend protected by flux-limiter!"]
+    ports:
+      - "8081:5678"
+    restart: unless-stopped

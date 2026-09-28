@@ -1,0 +1,26 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+flux-limiter
+
+# Test artifacts
+*.out
+*.test
+coverage.txt
+profile.pprof
+
+# IDE and OS files
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
